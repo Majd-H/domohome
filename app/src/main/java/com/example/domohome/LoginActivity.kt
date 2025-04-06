@@ -24,7 +24,6 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var radioGroup : RadioGroup
     private lateinit var button : Button
     private var token= Token(token = "")
-    private var houseId : Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
