@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.example.domohome.HouseChoiceAdapter.OnHouseClickListener
 
 class DeviceAdapter(
@@ -19,7 +20,7 @@ class DeviceAdapter(
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
     interface OnDeviceClickListener {
-        fun actionDevice(deviceId: String, command: String)
+        fun actionDevice(deviceId: String, command: String, indice:Int)
     }
 
     override fun getCount(): Int {
@@ -39,11 +40,23 @@ class DeviceAdapter(
         val idView = view.findViewById<TextView>(R.id.idDevice)
         val actionContainer= view.findViewById<ViewGroup>(R.id.actionsContainer)
         idView.text = devices[position].id
+
+        val bouton: Button = view.findViewById(R.id.etatButton)
+        if(devices[position].color == "green"){
+            bouton.setBackgroundColor(ContextCompat.getColor(context, R.color.green))
+        }else if(devices[position].color == "red"){
+            bouton.setBackgroundColor(ContextCompat.getColor(context, R.color.red))
+        }else if(devices[position].color == "orange"){
+            bouton.setBackgroundColor(ContextCompat.getColor(context, R.color.orange))
+        }else{
+            bouton.setBackgroundColor(ContextCompat.getColor(context, R.color.white))
+        }
+
         for (command in devices[position].availableCommands) {
             val button = Button(context).apply {
                 text = command
                 setOnClickListener {
-                    listener.actionDevice(devices[position].id, command)
+                    listener.actionDevice(devices[position].id, command, position)
                 }
             }
             actionContainer.addView(button)

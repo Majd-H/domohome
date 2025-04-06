@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.RadioGroup
@@ -11,15 +12,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonParseException
-import com.google.gson.reflect.TypeToken
-import java.lang.reflect.Type
+import androidx.core.content.ContextCompat
 
-data class Device(var id : String, var type : String, var availableCommands : List<String>, var opening : Int, var power : Int)
+data class Device(var id : String, var type : String, var availableCommands : List<String>, var opening : Int, var power : Int, var color:String)
 /*data class OpeningDevice(
     val id_: String,
     val type_: String,
@@ -39,32 +34,6 @@ data class Devices(
 
 data class Command(val command: String)
 
-/*class DeviceTypeAdapter : JsonDeserializer<Device> {
-    override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Device {
-        val jsonObject = json?.asJsonObject
-        val type = jsonObject?.get("type")?.asString
-
-        return when {
-            type == "opening" -> {
-                val opening = jsonObject?.get("opening")?.asInt ?: 0
-                val id = jsonObject?.get("id")?.asString ?: ""
-                val availableCommands = context?.deserialize<List<String>>(jsonObject?.get("availableCommands"), List::class.java) ?: emptyList()
-                OpeningDevice(id, type ?: "", availableCommands, opening)
-            }
-            type == "power" -> {
-                // Si le type est "power", on crée un PowerDevice
-                val power = jsonObject?.get("power")?.asInt ?: 0
-                val id = jsonObject?.get("id")?.asString ?: ""
-                val availableCommands = context?.deserialize<List<String>>(jsonObject?.get("availableCommands"), List::class.java) ?: emptyList()
-                PowerDevice(id, type ?: "", availableCommands, power)
-            }
-            else -> {
-                throw JsonParseException("Unknown device type")
-            }
-        }
-    }
-}*/
-
 data class User(val userLogin: String, val owner: Number)
 
 class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
@@ -72,8 +41,10 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
     private var token : String = ""
     private lateinit var id : String
     private lateinit var devices : Devices
+    private lateinit var dAdapter : DeviceAdapter
     private lateinit var users : List<User>
     private lateinit var contenuLinear : LinearLayout
+    private var index : Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,11 +73,8 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
 
 
     public fun listDevices(){
-        val path ="https://polyhome.lesmoulinsdudev.com/api/houses/${this.id}/devices"
-        Log.d("DEBUG_API", "Appel GET vers /devices avec id=${this.id} et token=$token")
-        Log.d("Connexion", "token appelé : ${this.token}")
         Api().get<Devices?>(
-            path,
+            "https://polyhome.lesmoulinsdudev.com/api/houses/${this.id}/devices",
             ::responseDevices,
             this.token
         )
@@ -126,11 +94,6 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
         var message : String =""
         when(responseCode) {
             200->{
-                /*val gson = GsonBuilder()
-                    .registerTypeAdapter(Device::class.java, DeviceTypeAdapter())
-                    .create()
-
-                val finalDevices = gson.fromJson(devices, Devices::class.java)*/
                 val inflater = LayoutInflater.from(this)
                 val layoutRes = R.layout.activity_home_devices
                 runOnUiThread {
@@ -138,9 +101,44 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
                         val view = inflater.inflate(it, contenuLinear, false)
                         contenuLinear.addView(view)
                         if (devices != null) {
-                            val adapter = DeviceAdapter(this, devices.devices, this)
+                            this.devices = devices
+                            val adapter = DeviceAdapter(this, this.devices.devices, this)
+                            val openButton: Button = view.findViewById(R.id.openButton)
+                            val closeButton: Button = view.findViewById(R.id.closeButton)
+                            val turnonButton: Button = view.findViewById(R.id.turnonButton)
+                            val turnoffButton: Button = view.findViewById(R.id.turnoffButton)
+
+                            openButton.setOnClickListener {
+                                var i=0
+                                for (device in devices.devices) {
+                                    if(device.availableCommands.contains("OPEN")){ actionDevice(device.id, "OPEN", i) }
+                                    i++
+                                }
+                            }
+                            closeButton.setOnClickListener {
+                                var i=0
+                                for (device in devices.devices) {
+                                    if(device.availableCommands.contains("OPEN")){ actionDevice(device.id, "CLOSE", i) }
+                                    i++
+                                }
+                            }
+                            turnonButton.setOnClickListener {
+                                var i=0
+                                for (device in devices.devices) {
+                                    if(device.availableCommands.contains("TURN ON")){ actionDevice(device.id, "TURN ON", i) }
+                                    i++
+                                }
+                            }
+                            turnoffButton.setOnClickListener {
+                                var i=0
+                                for (device in devices.devices) {
+                                    if(device.availableCommands.contains("TURN OFF")){ actionDevice(device.id, "TURN OFF", i) }
+                                    i++
+                                }
+                            }
                             val listView: ListView = view.findViewById(R.id.devicesList)
                             listView.adapter = adapter
+                            this.dAdapter = adapter
                         }
                     }
                 }
@@ -180,15 +178,6 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
         var message : String =""
         when(responseCode) {
             200->{
-                /*val adapter = UserAdapter(this, users)
-                val inflater = LayoutInflater.from(this)
-                val layoutRes = R.layout.activity_home_autorisations
-                layoutRes?.let {
-                    val view = inflater.inflate(it, contenuLinear, false)
-                    contenuLinear.addView(view)
-                }
-                val listView: ListView = findViewById(R.id.usersList)
-                listView.adapter = adapter*/
             }
             400->{
                 titre="Erreur 400"
@@ -216,7 +205,7 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
         }
     }
 
-    override fun actionDevice(deviceId: String, command: String) {
+    override fun actionDevice(deviceId: String, command: String, indice:Int) {
         val commande = Command(command=command)
         Api().post<Command,Command?>(
             "https://polyhome.lesmoulinsdudev.com/api/houses/${this.id}/devices/$deviceId/command",
@@ -224,6 +213,17 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
             ::responseActionDevice,
             this.token
         )
+        if(command == "OPEN" || command == "TURN ON"){
+            devices.devices[indice].color = "green"
+        }else if(command == "CLOSE" || command == "TURN OFF"){
+            devices.devices[indice].color = "red"
+        }else{
+            devices.devices[indice].color = "orange"
+        }
+        this.dAdapter.notifyDataSetChanged()
+
+
+
     }
     public fun responseActionDevice(responseCode: Int, command: Command?) {
         Log.d("Connexion", "command : $command")
