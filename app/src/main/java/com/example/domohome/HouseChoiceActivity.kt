@@ -1,6 +1,5 @@
 package com.example.domohome
 
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
@@ -10,7 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.RecyclerView
 
 data class House(var houseId : Int, var owner : Boolean)
 
@@ -47,8 +45,8 @@ class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickL
     }
 
     private fun responseFindHouse(responseCode: Int, houses: List<House> ?) {
-        var message : String = ""
-        var title : String = ""
+        var message = ""
+        var title = ""
         when (responseCode) {
             200 -> {
                 accessSearch(houses)

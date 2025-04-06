@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.TextView
-import com.example.domohome.DeviceAdapter.OnDeviceClickListener
 
 class UserAdapter (
         private val context: Context,

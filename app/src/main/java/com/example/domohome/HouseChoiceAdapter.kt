@@ -9,7 +9,7 @@ import android.widget.Button
 import android.widget.TextView
 
 class HouseChoiceAdapter(
-    private val context: Context,
+    context: Context,
     private var houses: MutableList<String> = mutableListOf<String>(),
     private val listener: OnHouseClickListener
 ) : BaseAdapter() {
@@ -21,7 +21,7 @@ class HouseChoiceAdapter(
         fun intentHome(house: Int)
     }
 
-    override public fun getItemId(position: Int): Long {
+    override fun getItemId(position: Int): Long {
         return position.toLong()
     }
     override fun getItem(position: Int): String {

@@ -16,22 +16,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.content.ContextCompat
 
 data class Device(var id : String, var type : String, var availableCommands : List<String>, var opening : Int, var power : Int, var color:String)
-/*data class OpeningDevice(
-    val id_: String,
-    val type_: String,
-    val commands_: List<String>,
-    val opening: Int
-) : Device(id_, type_, commands_)
-data class PowerDevice(
-    val id_: String,
-    val type_: String,
-    val commands_: List<String>,
-    val power: Int
-) : Device(id_, type_, commands_)
-*/
-data class Devices(
-    val devices: List<Device>
-)
+
+data class Devices(val devices: List<Device>)
 
 data class Command(val command: String)
 
@@ -73,14 +59,14 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener, Us
     }
 
 
-    public fun listDevices(){
+    private fun listDevices(){
         Api().get<Devices?>(
             "https://polyhome.lesmoulinsdudev.com/api/houses/${this.id}/devices",
             ::responseDevices,
             this.token
         )
     }
-    fun listUsers(){
+    private fun listUsers(){
         val path ="https://polyhome.lesmoulinsdudev.com/api/houses/${this.id}/users"
         Log.d("path", path)
         Api().get<List<User>?>(
@@ -89,10 +75,10 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener, Us
             this.token
         )
     }
-    public fun responseDevices(responseCode: Int, devices: Devices?) {
+    fun responseDevices(responseCode: Int, devices: Devices?) {
         Log.d("Connexion", "devices : $devices")
-        var titre : String =""
-        var message : String =""
+        var titre =""
+        var message =""
         when(responseCode) {
             200->{
                 val inflater = LayoutInflater.from(this)
@@ -173,10 +159,10 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener, Us
             }
         }
     }
-    public fun responseUsers(responseCode: Int, users: List<User>?) {
+    fun responseUsers(responseCode: Int, users: List<User>?) {
         Log.d("Connexion", "users : $users")
-        var titre : String =""
-        var message : String =""
+        var titre =""
+        var message =""
         when(responseCode) {
             200->{
                 val inflater = LayoutInflater.from(this)
@@ -237,8 +223,8 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener, Us
         )
     }
     private fun responseAddUser(responseCode: Int, user: User?) {
-        var titre : String =""
-        var message : String =""
+        var titre =""
+        var message =""
         when(responseCode) {
             200->{
                 if(user!=null){
@@ -298,8 +284,8 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener, Us
     }
     public fun responseActionDevice(responseCode: Int, command: Command?) {
         Log.d("Connexion", "command : $command")
-        var titre : String =""
-        var message : String =""
+        var titre =""
+        var message =""
         when(responseCode) {
             200->{
                 Log.d("Connexion", "Action effectuée avec succès")

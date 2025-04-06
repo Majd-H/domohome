@@ -97,8 +97,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun reponseRegister(responseCode: Int) {
-        var message : String = ""
-        var title : String = ""
+        var message = ""
+        var title = ""
         when (responseCode) {
             200 -> {
                 title = "✅ Succès"
