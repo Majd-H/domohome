@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.RadioGroup
@@ -36,15 +37,15 @@ data class Command(val command: String)
 
 data class User(val userLogin: String, val owner: Number)
 
-class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
+class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener, UserAdapter.OnUserClickListener {
 
     private var token : String = ""
     private lateinit var id : String
     private lateinit var devices : Devices
     private lateinit var dAdapter : DeviceAdapter
+    private lateinit var aAdapter : UserAdapter
     private lateinit var users : List<User>
     private lateinit var contenuLinear : LinearLayout
-    private var index : Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -178,6 +179,27 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
         var message : String =""
         when(responseCode) {
             200->{
+                val inflater = LayoutInflater.from(this)
+                val layoutRes = R.layout.activity_home_autorisations
+                runOnUiThread {
+                    layoutRes.let {
+                        val view = inflater.inflate(it, contenuLinear, false)
+                        contenuLinear.addView(view)
+                        if (users != null) {
+                            this.users = users
+                            val adapter = UserAdapter(this, this.users, this)
+                            val addButton: Button = view.findViewById(R.id.addButton)
+                            val loginEdit: EditText = view.findViewById(R.id.loginEdit)
+                            addButton.setOnClickListener {
+                                addUser(loginEdit.text.toString())
+                            }
+
+                            val listView: ListView = view.findViewById(R.id.usersList)
+                            listView.adapter = adapter
+                            this.aAdapter = adapter
+                        }
+                    }
+                }
             }
             400->{
                 titre="Erreur 400"
@@ -205,6 +227,58 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
         }
     }
 
+    private fun addUser(login: String) {
+        val user = User(userLogin = login, owner = 0)
+        Api().post<User>(
+            "https://polyhome.lesmoulinsdudev.com/api/houses/${this.id}/users",
+            user,
+            { code -> responseAddUser(code, user) },
+            this.token
+        )
+    }
+    private fun responseAddUser(responseCode: Int, user: User?) {
+        var titre : String =""
+        var message : String =""
+        when(responseCode) {
+            200->{
+                if(user!=null){
+                    this.users+=user
+                    runOnUiThread {
+                        this.aAdapter.notifyDataSetChanged()
+                        this.contenuLinear.removeAllViews()
+                        listUsers()
+                    }
+                }
+            }
+            400->{
+                titre="Erreur 400"
+                message="Les données fournies sont incorrectes"
+            }
+            403->{
+                titre="Erreur 403"
+                message="Token invalide"
+            }
+            409->{
+                titre="Erreur 409"
+                message="Utilisateur déjà associé"
+            }
+            500->{
+                titre="Erreur 500"
+                message="Une erreur s'est produite au niveau du serveur"
+            }
+        }
+        if(titre != ""){
+            runOnUiThread {
+                AlertDialog.Builder(this)
+                    .setTitle(titre)
+                    .setMessage(message)
+                    .setPositiveButton("OK") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
+        }
+    }
     override fun actionDevice(deviceId: String, command: String, indice:Int) {
         val commande = Command(command=command)
         Api().post<Command,Command?>(
@@ -221,9 +295,6 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
             devices.devices[indice].color = "orange"
         }
         this.dAdapter.notifyDataSetChanged()
-
-
-
     }
     public fun responseActionDevice(responseCode: Int, command: Command?) {
         Log.d("Connexion", "command : $command")
@@ -262,6 +333,53 @@ class HomeActivity : AppCompatActivity(),DeviceAdapter.OnDeviceClickListener {
         }
     }
 
-
+    override fun deleteUser(index: Int) {
+        Api().delete<User>(
+            "https://polyhome.lesmoulinsdudev.com/api/houses/${this.id}/users",
+            users[index],
+            ::responseDeleteUser,
+            this.token
+        )
+        this.aAdapter.notifyDataSetChanged()
+    }
+    public fun responseDeleteUser(responseCode: Int) {
+        var titre : String =""
+        var message : String =""
+        when(responseCode) {
+            200->{
+                runOnUiThread {
+                    this.aAdapter.notifyDataSetChanged()
+                    this.contenuLinear.removeAllViews()
+                    listUsers()
+                }
+            }
+            400->{
+                titre="Erreur 400"
+                message="Les données fournies sont incorrectes"
+            }
+            403->{
+                titre="Erreur 403"
+                message="Token invalide ou non propriétaire de la maison"
+            }
+            500->{
+                titre="Erreur 500"
+                message="Une erreur s'est produite au niveau du serveur"
+            }
+            else ->{
+                Log.d("Connexion", "autre erreur : $responseCode")
+            }
+        }
+        if(titre != ""){
+            runOnUiThread {
+                AlertDialog.Builder(this)
+                    .setTitle(titre)
+                    .setMessage(message)
+                    .setPositiveButton("OK") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
+        }
+    }
 
 }

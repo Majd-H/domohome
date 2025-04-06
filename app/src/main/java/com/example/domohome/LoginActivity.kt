@@ -23,6 +23,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var radioGroup : RadioGroup
     private lateinit var button : Button
     private var token= Token(token = "")
+    private lateinit var userLogin : String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +71,7 @@ class LoginActivity : AppCompatActivity() {
     private fun connection(){
         val loginEditText : EditText = findViewById<EditText>(R.id.idEdit)
         val mdpEditText : EditText = findViewById<EditText>(R.id.mdpEdit)
+        this.userLogin = findViewById<EditText>(R.id.idEdit).text.toString()
         val connectionData = RequestData(
             login = loginEditText.text.toString(),
             password = mdpEditText.text.toString()
@@ -172,6 +174,7 @@ class LoginActivity : AppCompatActivity() {
     private fun intentHouseChoice() {
         val intent = Intent(this, HouseChoiceActivity::class.java)
         intent.putExtra("token", this.token.token)
+        intent.putExtra("userLogin", this.userLogin)
         startActivity(intent)
     }
 

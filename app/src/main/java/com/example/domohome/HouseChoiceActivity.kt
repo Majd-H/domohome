@@ -18,6 +18,7 @@ class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickL
 
     private lateinit var token : String
     private var houses = mutableListOf<String>()
+    private lateinit var userLogin : String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +30,8 @@ class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickL
             insets
         }
         this.token = intent.getStringExtra("token")!!
-        Log.d("Connexion", "Token reçu house choice : $token")
+        this.userLogin = intent.getStringExtra("userLogin")!!
+        Log.d("Connexion", "userLogin reçu house choice : $userLogin")
         listHouses()
         val adapter = HouseChoiceAdapter(this, houses, this)
         val listView : ListView =findViewById(R.id.houseList)
@@ -49,9 +51,7 @@ class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickL
         var title : String = ""
         when (responseCode) {
             200 -> {
-                for (house in houses!!) {
-                    if (house.owner) this.houses.add(house.houseId.toString())
-                }
+                accessSearch(houses)
             }
             403 -> {
                 title = "Accès refusé"
@@ -66,6 +66,56 @@ class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickL
             }
         }
         if(title != ""){
+            runOnUiThread {
+                AlertDialog.Builder(this)
+                    .setTitle(title)
+                    .setMessage(message)
+                    .setPositiveButton("OK") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
+        }
+    }
+
+    private fun accessSearch(houses: List<House>?) {
+        for(house in houses!!){
+            Api().get<List<User> ?>(
+                "https://polyhome.lesmoulinsdudev.com/api/houses/${house.houseId}/users",
+                { code, users -> responseAccess(code, users, house) },
+                this.token
+            )
+        }
+    }
+
+    private fun responseAccess(responseCode: Int, users: List<User> ?, house:House){
+        var title=""
+        var message=""
+        when(responseCode){
+            200->{
+                for(user in users!!){
+                    if(user.userLogin == this.userLogin){
+                        this.houses.add(house.houseId.toString())
+                    }
+                }
+            }
+            400 -> {
+                title = "Accès refusé"
+                message = "Données incorrectes"
+            }
+            403 -> {
+                title = "Accès refusé"
+                message = "Token invalide"
+            }
+            500 -> {
+                title = "Erreur 500"
+                message = "Une erreur s’est produite au niveau du serveur."
+            }
+            else -> {
+                Log.e("Register", "Code inconnu : $responseCode")
+            }
+        }
+        if(title != "") {
             runOnUiThread {
                 AlertDialog.Builder(this)
                     .setTitle(title)
