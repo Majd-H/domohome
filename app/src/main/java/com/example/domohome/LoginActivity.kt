@@ -15,7 +15,6 @@ import androidx.core.view.WindowInsetsCompat
 
 data class RequestData(var login: String, var password: String)
 data class Token(var token: String)
-data class House(var id : Int, var owner : Boolean)
 
 class LoginActivity : AppCompatActivity() {
 
@@ -44,6 +43,9 @@ class LoginActivity : AppCompatActivity() {
                 R.id.coRadio -> updateConnexion()
                 R.id.regRadio -> updateRegister()
             }
+        }
+        button.setOnClickListener{
+            connection()
         }
     }
 

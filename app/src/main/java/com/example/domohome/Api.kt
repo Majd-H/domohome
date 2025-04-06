@@ -44,19 +44,14 @@ class Api {
         securityToken: String? = null)
     {
         CoroutineScope(Dispatchers.IO).launch {
-            val connection = prepareConnection<K>(path, method, data, securityToken);
-            val responseCode = connection.responseCode;
+            val connection = prepareConnection<K>(path, method, data, securityToken)
+            val responseCode = connection.responseCode
 
-            if (responseCode == 200)
-            {
-                onSuccess(responseCode, processData(connection));
-            }
-            else
-            {
-                println(responseCode);
-            }
+            val body = if (responseCode == 200) processData<T>(connection) else null
+            onSuccess(responseCode, body)
         }
     }
+
 
     inline fun <reified K>request(
         path: String,

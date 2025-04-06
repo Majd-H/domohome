@@ -14,11 +14,12 @@ class HouseChoiceAdapter(
     private val listener: OnHouseClickListener
 ) : BaseAdapter() {
 
-    interface OnHouseClickListener {
-        fun intentHome(house: String)
-    }
     private val inflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+    interface OnHouseClickListener {
+        fun intentHome(house: Int)
+    }
 
     override public fun getItemId(position: Int): Long {
         return position.toLong()
@@ -37,7 +38,7 @@ class HouseChoiceAdapter(
 
         textView.text = houses[position]
         button.setOnClickListener{
-            listener.intentHome(houses[position])
+            listener.intentHome(position)
         }
         return view
     }

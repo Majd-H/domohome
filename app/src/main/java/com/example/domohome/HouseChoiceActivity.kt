@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 
+data class House(var houseId : Int, var owner : Boolean)
 
 class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickListener {
 
@@ -28,6 +29,7 @@ class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickL
             insets
         }
         this.token = intent.getStringExtra("token")!!
+        Log.d("Connexion", "Token reçu house choice : $token")
         listHouses()
         val adapter = HouseChoiceAdapter(this, houses, this)
         val listView : ListView =findViewById(R.id.houseList)
@@ -48,8 +50,7 @@ class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickL
         when (responseCode) {
             200 -> {
                 for (house in houses!!) {
-                    if (house.owner) this.houses.add(house.id.toString())
-                    break
+                    if (house.owner) this.houses.add(house.houseId.toString())
                 }
             }
             403 -> {
@@ -77,9 +78,10 @@ class HouseChoiceActivity : AppCompatActivity(),HouseChoiceAdapter.OnHouseClickL
         }
     }
 
-    override fun intentHome(house : String) {
+    override fun intentHome(house : Int) {
         val intent = Intent(this, HomeActivity::class.java)
-        intent.putExtra("id", house)
+        intent.putExtra("id", houses[house])
+        intent.putExtra("token", this.token)
         startActivity(intent)
     }
 }
